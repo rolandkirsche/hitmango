@@ -12,7 +12,7 @@ function BoardPreview() {
     <svg
       width="280" height="160"
       viewBox="0 0 280 160"
-      style={{ display: 'block', borderRadius: '3px', border: '1px solid var(--border)' }}
+      style={{ display: 'block', margin: '0 auto', borderRadius: '3px', border: '1px solid var(--border)' }}
     >
       <defs>
         <radialGradient id="prev-bg" cx="30%" cy="25%" r="90%">
