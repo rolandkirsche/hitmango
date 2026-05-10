@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { levels } from '@/lib/levels';
-import { initState, movePlayer, throwCan } from '@/lib/gameEngine';
+import { initState, movePlayer } from '@/lib/gameEngine';
 import { GameState, NodeId } from '@/lib/types';
 import GameBoard from '@/components/GameBoard';
 import LevelSelect from '@/components/LevelSelect';
@@ -12,12 +12,10 @@ export default function Home() {
   const [levelIndex, setLevelIndex] = useState(0);
   const [gameState, setGameState] = useState<GameState>(() => initState(levels[0]));
   const [completed, setCompleted] = useState<number[]>([]);
-  const [throwMode, setThrowMode] = useState(false);
 
   const startLevel = useCallback((idx: number) => {
     setLevelIndex(idx);
     setGameState(initState(levels[idx]));
-    setThrowMode(false);
     setScreen('game');
   }, []);
 
@@ -27,18 +25,12 @@ export default function Home() {
     }
   }, [gameState.status, levelIndex]);
 
-  const handleNodeClick = useCallback((nodeId: NodeId) => {
-    if (throwMode) {
-      setGameState(prev => throwCan(prev, nodeId));
-      setThrowMode(false);
-    } else {
-      setGameState(prev => movePlayer(prev, nodeId, levels[levelIndex]));
-    }
-  }, [throwMode, levelIndex]);
+  const handleMove = useCallback((nodeId: NodeId) => {
+    setGameState(prev => movePlayer(prev, nodeId, levels[levelIndex]));
+  }, [levelIndex]);
 
   const restart = useCallback(() => {
     setGameState(initState(levels[levelIndex]));
-    setThrowMode(false);
   }, [levelIndex]);
 
   const nextLevel = useCallback(() => {
@@ -52,7 +44,7 @@ export default function Home() {
   }
 
   const level = levels[levelIndex];
-  const { status, moves, cansLeft } = gameState;
+  const { status, moves } = gameState;
 
   const overlayBtn: React.CSSProperties = {
     fontFamily: 'var(--font-mono)',
@@ -67,61 +59,119 @@ export default function Home() {
   };
 
   return (
-    <div className="game-root">
+    <div style={{
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'var(--bg)',
+      overflow: 'hidden',
+    }}>
       {/* Header */}
-      <div className="game-header">
+      <div style={{
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 1.5rem',
+        height: '52px',
+        borderBottom: '1px solid var(--border)',
+      }}>
         <button
-          onClick={() => { setScreen('select'); setThrowMode(false); }}
-          className="header-back"
+          onClick={() => setScreen('select')}
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.6rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: 'var(--text-dim)',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'color 0.15s',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--text)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-dim)')}
         >
           ← missions
         </button>
 
         <div style={{ textAlign: 'center' }}>
-          <span className="header-id">
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.58rem',
+            letterSpacing: '0.22em',
+            color: 'var(--text-dim)',
+            textTransform: 'uppercase',
+            marginRight: '1rem',
+          }}>
             {String(level.id).padStart(2, '0')}
           </span>
-          <span className="header-name">
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '0.85rem',
+            letterSpacing: '0.2em',
+            color: 'var(--text)',
+          }}>
             {level.name.toUpperCase()}
           </span>
         </div>
 
-        <div className="header-right">
-          {/* Can throw button */}
-          {cansLeft > 0 && status === 'playing' && (
-            <button
-              onClick={() => setThrowMode(m => !m)}
-              className={`can-btn${throwMode ? ' can-btn--active' : ''}`}
-              title="Throw can to distract enemies"
-            >
-              <span className="can-icon">🥫</span>
-              <span className="can-count">{cansLeft}</span>
-            </button>
-          )}
-          <span className="header-moves">{moves}</span>
-          <span className="header-moves-label">moves</span>
+        <div style={{ textAlign: 'right', minWidth: '80px' }}>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '1.1rem',
+            color: 'var(--text)',
+          }}>{moves}</span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.5rem',
+            letterSpacing: '0.2em',
+            color: 'var(--text-dim)',
+            textTransform: 'uppercase',
+            marginLeft: '0.4rem',
+          }}>moves</span>
         </div>
       </div>
 
-      {/* Throw mode banner */}
-      {throwMode && (
-        <div className="throw-banner">
-          Click any node to throw can — distracts patrol enemies for 1 turn
-          <button onClick={() => setThrowMode(false)} className="throw-cancel">cancel</button>
-        </div>
-      )}
-
       {/* Board */}
-      <div className="board-wrap">
-        <div className="board-inner">
-          <GameBoard level={level} state={gameState} onMove={handleNodeClick} throwMode={throwMode} />
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '860px',
+          aspectRatio: '4/3',
+        }}>
+          <GameBoard level={level} state={gameState} onMove={handleMove} />
 
           {/* Dead overlay */}
           {status === 'dead' && (
-            <div className="overlay">
-              <p className="overlay-sub" style={{ color: '#601010' }}>mission failed</p>
-              <p className="overlay-title" style={{ color: '#c02020' }}>YOU WERE SPOTTED</p>
-              <button onClick={restart} style={{ ...overlayBtn, color: '#c04040', border: '1px solid #601010' }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(4,2,2,0.78)',
+              backdropFilter: 'blur(3px)',
+            }}>
+              <p style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.6rem',
+                letterSpacing: '0.35em',
+                color: '#601010',
+                textTransform: 'uppercase',
+                marginBottom: '0.6rem',
+              }}>mission failed</p>
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '2rem',
+                letterSpacing: '0.12em',
+                color: '#c02020',
+                marginBottom: '2.5rem',
+              }}>YOU WERE SPOTTED</p>
+              <button onClick={restart} style={{
+                ...overlayBtn,
+                color: '#c04040',
+                border: '1px solid #601010',
+              }}>
                 retry
               </button>
             </div>
@@ -129,17 +179,50 @@ export default function Home() {
 
           {/* Won overlay */}
           {status === 'won' && (
-            <div className="overlay">
-              <p className="overlay-sub" style={{ color: '#186030' }}>mission complete</p>
-              <p className="overlay-title" style={{ color: '#00c870' }}>TARGET ELIMINATED</p>
-              <p className="overlay-moves">{moves} moves</p>
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(2,6,4,0.78)',
+              backdropFilter: 'blur(3px)',
+            }}>
+              <p style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.6rem',
+                letterSpacing: '0.35em',
+                color: '#186030',
+                textTransform: 'uppercase',
+                marginBottom: '0.6rem',
+              }}>mission complete</p>
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '2rem',
+                letterSpacing: '0.12em',
+                color: '#00c870',
+                marginBottom: '0.4rem',
+              }}>TARGET ELIMINATED</p>
+              <p style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.6rem',
+                letterSpacing: '0.2em',
+                color: '#206040',
+                marginBottom: '2.5rem',
+              }}>{moves} moves</p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={restart} style={{ ...overlayBtn, color: 'var(--text-dim)', border: '1px solid var(--border)' }}>
+                <button onClick={restart} style={{
+                  ...overlayBtn,
+                  color: 'var(--text-dim)',
+                  border: '1px solid var(--border)',
+                }}>
                   replay
                 </button>
                 <button
                   onClick={levelIndex + 1 < levels.length ? nextLevel : () => setScreen('select')}
-                  style={{ ...overlayBtn, color: '#00c870', border: '1px solid #186030' }}
+                  style={{
+                    ...overlayBtn,
+                    color: '#00c870',
+                    border: '1px solid #186030',
+                  }}
                 >
                   {levelIndex + 1 < levels.length ? 'next mission' : 'all missions'}
                 </button>
