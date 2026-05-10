@@ -7,6 +7,22 @@ import { GameState, NodeId } from '@/lib/types';
 import GameBoard from '@/components/GameBoard';
 import LevelSelect from '@/components/LevelSelect';
 
+const pillBtn = (color: string, border: string, glow?: string): React.CSSProperties => ({
+  fontFamily: 'var(--font-ui)',
+  fontSize: '13px',
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  padding: '0.55rem 1.5rem',
+  borderRadius: 'var(--radius-pill)',
+  cursor: 'pointer',
+  background: 'none',
+  color,
+  border: `1px solid ${border}`,
+  transition: 'box-shadow 0.15s',
+  boxShadow: glow ? `0 0 0 0 ${glow}` : undefined,
+});
+
 export default function Home() {
   const [screen, setScreen] = useState<'select' | 'game'>('select');
   const [levelIndex, setLevelIndex] = useState(0);
@@ -54,18 +70,6 @@ export default function Home() {
   const level = levels[levelIndex];
   const { status, moves, cansLeft } = gameState;
 
-  const overlayBtn: React.CSSProperties = {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '0.65rem',
-    letterSpacing: '0.18em',
-    textTransform: 'uppercase',
-    padding: '0.7rem 1.8rem',
-    borderRadius: '2px',
-    cursor: 'pointer',
-    background: 'none',
-    transition: 'opacity 0.15s',
-  };
-
   return (
     <div className="game-root">
       {/* Header */}
@@ -74,20 +78,15 @@ export default function Home() {
           onClick={() => { setScreen('select'); setThrowMode(false); }}
           className="header-back"
         >
-          ← missions
+          ← Missions
         </button>
 
-        <div style={{ textAlign: 'center' }}>
-          <span className="header-id">
-            {String(level.id).padStart(2, '0')}
-          </span>
-          <span className="header-name">
-            {level.name.toUpperCase()}
-          </span>
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <span className="header-id">{String(level.id).padStart(2, '0')}</span>
+          <span className="header-name">{level.name}</span>
         </div>
 
         <div className="header-right">
-          {/* Can throw button */}
           {cansLeft > 0 && status === 'playing' && (
             <button
               onClick={() => setThrowMode(m => !m)}
@@ -95,19 +94,21 @@ export default function Home() {
               title="Throw can to distract enemies"
             >
               <span className="can-icon">🥫</span>
-              <span className="can-count">{cansLeft}</span>
+              <span className="can-count">×{cansLeft}</span>
             </button>
           )}
-          <span className="header-moves">{moves}</span>
-          <span className="header-moves-label">moves</span>
+          <div className="header-moves-badge">
+            <span className="header-moves">{moves}</span>
+            <span className="header-moves-label">moves</span>
+          </div>
         </div>
       </div>
 
       {/* Throw mode banner */}
       {throwMode && (
         <div className="throw-banner">
-          Click any node to throw can — distracts patrol enemies for 1 turn
-          <button onClick={() => setThrowMode(false)} className="throw-cancel">cancel</button>
+          Select target node to throw can
+          <button onClick={() => setThrowMode(false)} className="throw-cancel">Cancel</button>
         </div>
       )}
 
@@ -119,29 +120,44 @@ export default function Home() {
           {/* Dead overlay */}
           {status === 'dead' && (
             <div className="overlay">
-              <p className="overlay-sub" style={{ color: '#601010' }}>mission failed</p>
-              <p className="overlay-title" style={{ color: '#c02020' }}>YOU WERE SPOTTED</p>
-              <button onClick={restart} style={{ ...overlayBtn, color: '#c04040', border: '1px solid #601010' }}>
-                retry
-              </button>
+              <p className="overlay-sub" style={{ color: 'var(--red)' }}>Mission Failed</p>
+              <p className="overlay-title" style={{ color: '#f87171' }}>YOU WERE SPOTTED</p>
+              <p style={{ height: '1.5rem' }} />
+              <div className="overlay-btns">
+                <button
+                  onClick={restart}
+                  style={pillBtn('#f87171', '#7f1d1d')}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 14px rgba(239,68,68,0.3)')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+                >
+                  Retry
+                </button>
+              </div>
             </div>
           )}
 
           {/* Won overlay */}
           {status === 'won' && (
             <div className="overlay">
-              <p className="overlay-sub" style={{ color: '#186030' }}>mission complete</p>
-              <p className="overlay-title" style={{ color: '#00c870' }}>TARGET ELIMINATED</p>
+              <p className="overlay-sub" style={{ color: 'var(--green)' }}>Mission Complete</p>
+              <p className="overlay-title" style={{ color: 'var(--gold)' }}>TARGET ELIMINATED</p>
               <p className="overlay-moves">{moves} moves</p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={restart} style={{ ...overlayBtn, color: 'var(--text-dim)', border: '1px solid var(--border)' }}>
-                  replay
+              <div className="overlay-btns">
+                <button
+                  onClick={restart}
+                  style={pillBtn('var(--text-dim)', 'var(--border)')}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 10px rgba(255,255,255,0.08)')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+                >
+                  Replay
                 </button>
                 <button
                   onClick={levelIndex + 1 < levels.length ? nextLevel : () => setScreen('select')}
-                  style={{ ...overlayBtn, color: '#00c870', border: '1px solid #186030' }}
+                  style={pillBtn('var(--gold)', 'rgba(244,180,0,0.4)')}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 14px var(--gold-glow)')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
                 >
-                  {levelIndex + 1 < levels.length ? 'next mission' : 'all missions'}
+                  {levelIndex + 1 < levels.length ? 'Next Mission' : 'All Missions'}
                 </button>
               </div>
             </div>
