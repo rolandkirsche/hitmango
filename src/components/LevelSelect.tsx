@@ -15,20 +15,11 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
+      padding: '3rem 1rem 2rem',
     }}>
       {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-        <p style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.55rem',
-          letterSpacing: '0.6em',
-          color: 'var(--text-dim)',
-          textTransform: 'uppercase',
-          marginBottom: '1rem',
-        }}>
-          Square Enix
-        </p>
         <h1 style={{
           fontFamily: 'var(--font-display)',
           fontSize: '4rem',
@@ -37,18 +28,8 @@ export default function LevelSelect({ onSelect, completed }: Props) {
           letterSpacing: '0.22em',
           lineHeight: 1,
         }}>
-          HITMAN
+          TILE ASSASSIN
         </h1>
-        <p style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.75rem',
-          letterSpacing: '1.1em',
-          color: 'var(--text-dim)',
-          marginTop: '0.5rem',
-          textTransform: 'uppercase',
-        }}>
-          go
-        </p>
         <div style={{
           margin: '1.25rem auto 0',
           width: '120px',
