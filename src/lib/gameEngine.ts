@@ -13,6 +13,8 @@ export function initState(level: Level): GameState {
     })),
     status: 'playing',
     moves: 0,
+    can: null,
+    cansLeft: level.cans ?? 0,
   };
 }
 
@@ -26,7 +28,6 @@ export function getAdjacentNodes(nodeId: NodeId, level: Level): NodeId[] {
 }
 
 function enemyFacing(enemy: Enemy): NodeId | null {
-  // knife: current index IS the facing node (cycles through path)
   if (enemy.type === 'knife') return enemy.path[enemy.index];
   const nextIndex = enemy.index + enemy.dir;
   if (nextIndex >= 0 && nextIndex < enemy.path.length) {
@@ -44,7 +45,6 @@ function canPlayerKill(enemy: Enemy, fromNode: NodeId): boolean {
 
 function advanceEnemy(enemy: Enemy): Enemy {
   if (enemy.type === 'stationary') return enemy;
-  // knife rotates facing through path in a cycle (no bounce)
   if (enemy.type === 'knife') {
     return { ...enemy, index: (enemy.index + 1) % enemy.path.length };
   }
@@ -62,17 +62,51 @@ function advanceEnemy(enemy: Enemy): Enemy {
   return next;
 }
 
+// Throw a can: enemies (patrol/stationary) freeze this turn. Knife/sniper unaffected.
+export function throwCan(state: GameState, targetNode: NodeId): GameState {
+  if (state.status !== 'playing' || state.cansLeft <= 0) return state;
+
+  // Only knife enemies advance; patrol/stationary are distracted
+  const advancedEnemies: Enemy[] = [];
+  let playerDead = false;
+  for (const enemy of state.enemies) {
+    if (enemy.type === 'patrol' || enemy.type === 'stationary') {
+      advancedEnemies.push(enemy); // frozen
+      continue;
+    }
+    const advanced = advanceEnemy(enemy);
+    if (advanced.type === 'knife' && advanced.path[advanced.index] === state.playerNode) {
+      playerDead = true;
+      break;
+    }
+    advancedEnemies.push(advanced);
+  }
+
+  if (playerDead) return { ...state, status: 'dead' };
+
+  return {
+    ...state,
+    enemies: advancedEnemies,
+    can: targetNode,
+    cansLeft: state.cansLeft - 1,
+    moves: state.moves + 1,
+  };
+}
+
 export function movePlayer(state: GameState, targetNode: NodeId, level: Level): GameState {
   if (state.status !== 'playing') return state;
 
-  const isWait = targetNode === state.playerNode;
+  // Clear can visual on any new action
+  const baseState = { ...state, can: null };
+
+  const isWait = targetNode === baseState.playerNode;
 
   if (!isWait) {
-    const adjacent = getAdjacentNodes(state.playerNode, level);
+    const adjacent = getAdjacentNodes(baseState.playerNode, level);
     if (!adjacent.includes(targetNode)) return state;
   }
 
-  let newEnemies = [...state.enemies];
+  let newEnemies = [...baseState.enemies];
   let playerDead = false;
 
   if (!isWait) {
@@ -80,7 +114,7 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
     for (const enemy of newEnemies) {
       const enemyNode = getEnemyNode(enemy);
       if (enemyNode === targetNode) {
-        if (canPlayerKill(enemy, state.playerNode)) {
+        if (canPlayerKill(enemy, baseState.playerNode)) {
           killed.push(enemy.id);
         } else {
           playerDead = true;
@@ -92,13 +126,11 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
     newEnemies = newEnemies.filter(e => !killed.includes(e.id));
   }
 
-  const finalPlayerNode = isWait ? state.playerNode : targetNode;
+  const finalPlayerNode = isWait ? baseState.playerNode : targetNode;
 
-  // Advance enemies
   const advancedEnemies: Enemy[] = [];
   for (const enemy of newEnemies) {
     const advanced = advanceEnemy(enemy);
-    // knife: kills if new facing === player node; patrol: kills if new position === player node
     const dangerNode = advanced.type === 'knife'
       ? advanced.path[advanced.index]
       : getEnemyNode(advanced);
@@ -114,10 +146,11 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
   const won = !isWait && finalPlayerNode === level.exit;
 
   return {
+    ...baseState,
     playerNode: finalPlayerNode,
     enemies: advancedEnemies,
     status: won ? 'won' : 'playing',
-    moves: state.moves + 1,
+    moves: baseState.moves + 1,
   };
 }
 

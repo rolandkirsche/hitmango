@@ -9,16 +9,9 @@ interface Props {
 
 export default function LevelSelect({ onSelect, completed }: Props) {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
+    <div className="level-select-wrap">
       {/* Logo */}
-      <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
         <p style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '0.55rem',
@@ -31,7 +24,7 @@ export default function LevelSelect({ onSelect, completed }: Props) {
         </p>
         <h1 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '4rem',
+          fontSize: 'clamp(2.2rem, 8vw, 4rem)',
           fontWeight: 900,
           color: 'var(--text)',
           letterSpacing: '0.22em',
@@ -49,20 +42,11 @@ export default function LevelSelect({ onSelect, completed }: Props) {
         }}>
           go
         </p>
-        <div style={{
-          margin: '1.25rem auto 0',
-          width: '120px',
-          height: '1px',
-          background: 'var(--border)',
-        }} />
+        <div style={{ margin: '1.25rem auto 0', width: '120px', height: '1px', background: 'var(--border)' }} />
       </div>
 
       {/* Level grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(5, 148px)',
-        gap: '1.25rem',
-      }}>
+      <div className="level-grid">
         {levels.map((level, i) => {
           const done = completed.includes(i);
           return (
@@ -73,8 +57,8 @@ export default function LevelSelect({ onSelect, completed }: Props) {
             >
               <div
                 style={{
-                  width: '148px',
-                  height: '148px',
+                  width: '100%',
+                  aspectRatio: '1',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -96,10 +80,9 @@ export default function LevelSelect({ onSelect, completed }: Props) {
                   el.style.borderColor = done ? '#1a3820' : 'var(--border)';
                 }}
               >
-                {/* Level number */}
                 <div style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '2.8rem',
+                  fontSize: 'clamp(1.6rem, 4vw, 2.8rem)',
                   fontWeight: 900,
                   color: done ? '#00c870' : 'var(--text)',
                   lineHeight: 1,
@@ -108,46 +91,55 @@ export default function LevelSelect({ onSelect, completed }: Props) {
                   {String(level.id).padStart(2, '0')}
                 </div>
 
-                {/* Level name */}
                 <div style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.52rem',
-                  letterSpacing: '0.2em',
+                  fontSize: '0.48rem',
+                  letterSpacing: '0.18em',
                   color: done ? '#2a8050' : 'var(--text-dim)',
                   textTransform: 'uppercase',
                   textAlign: 'center',
-                  padding: '0 0.75rem',
+                  padding: '0 0.5rem',
                 }}>
                   {level.name}
                 </div>
 
-                {/* Done badge */}
                 {done && (
                   <div style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.48rem',
-                    letterSpacing: '0.2em',
+                    fontSize: '0.44rem',
+                    letterSpacing: '0.18em',
                     color: '#00c870',
                     textTransform: 'uppercase',
-                    marginTop: '0.15rem',
                   }}>
-                    ✓ complete
+                    ✓ done
                   </div>
+                )}
+
+                {/* Can indicator */}
+                {(level.cans ?? 0) > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 6, right: 6,
+                    fontSize: '0.6rem',
+                    opacity: 0.5,
+                  }}>🥫</div>
                 )}
 
                 {/* Enemy pip count */}
                 <div style={{
                   position: 'absolute',
-                  bottom: 10,
-                  right: 10,
+                  bottom: 7, right: 7,
                   display: 'flex',
                   gap: '3px',
                 }}>
-                  {Array.from({ length: level.enemies.length }, (_, j) => (
+                  {level.enemies.map((e, j) => (
                     <div key={j} style={{
                       width: 4, height: 4,
                       borderRadius: '50%',
-                      background: '#601010',
+                      background: e.type === 'sniper' ? '#c02020'
+                        : e.type === 'knife' ? '#c08020'
+                        : e.type === 'stationary' ? '#203060'
+                        : '#601010',
                     }} />
                   ))}
                 </div>
@@ -158,7 +150,7 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       </div>
 
       <p style={{
-        marginTop: '3rem',
+        marginTop: '2.5rem',
         fontFamily: 'var(--font-mono)',
         fontSize: '0.5rem',
         letterSpacing: '0.45em',

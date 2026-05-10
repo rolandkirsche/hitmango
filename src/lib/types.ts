@@ -38,6 +38,7 @@ export interface Level {
   playerStart: NodeId;
   exit: NodeId;
   enemies: EnemyDef[];
+  cans?: number;
 }
 
 export type GameStatus = 'playing' | 'dead' | 'won';
@@ -47,4 +48,6 @@ export interface GameState {
   enemies: Enemy[];
   status: GameStatus;
   moves: number;
+  can: NodeId | null;
+  cansLeft: number;
 }
