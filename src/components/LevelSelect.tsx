@@ -132,7 +132,15 @@ export default function LevelSelect({ onSelect, completed }: Props) {
         }}>
           TILE ASSASSIN
         </h1>
-        <div style={{ margin: '1.25rem auto 1.5rem', width: '120px', height: '1px', background: 'var(--border)' }} />
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.48rem',
+          letterSpacing: '0.25em',
+          color: 'var(--text-dim)',
+          marginTop: '0.5rem',
+          textTransform: 'lowercase',
+        }}>by Rotolando 2026</p>
+        <div style={{ margin: '1rem auto 1.5rem', width: '120px', height: '1px', background: 'var(--border)' }} />
         <BoardPreview />
       </div>
 
