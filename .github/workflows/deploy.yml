@@ -19,5 +19,5 @@ jobs:
             git pull origin main
             npm ci --production=false
             npm run build
-            pm2 restart hitmango || pm2 start npm --name hitmango -- start --port 3000
+            pm2 restart hitmango || (cd /var/www/hitmango && pm2 start npm --name hitmango -- start)
             pm2 save
