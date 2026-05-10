@@ -22,10 +22,10 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
         <h1 style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '4rem',
+          fontSize: 'clamp(1.6rem, 6vw, 3.2rem)',
           fontWeight: 900,
           color: 'var(--text)',
-          letterSpacing: '0.22em',
+          letterSpacing: '0.12em',
           lineHeight: 1,
         }}>
           TILE ASSASSIN
@@ -41,8 +41,10 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       {/* Level grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 148px)',
-        gap: '1.25rem',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 100px))',
+        gap: '0.75rem',
+        width: '100%',
+        maxWidth: '600px',
       }}>
         {levels.map((level, i) => {
           const done = completed.includes(i);
@@ -54,8 +56,8 @@ export default function LevelSelect({ onSelect, completed }: Props) {
             >
               <div
                 style={{
-                  width: '148px',
-                  height: '148px',
+                  width: '100%',
+                  aspectRatio: '1',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -80,7 +82,7 @@ export default function LevelSelect({ onSelect, completed }: Props) {
                 {/* Level number */}
                 <div style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '2.8rem',
+                  fontSize: '1.8rem',
                   fontWeight: 900,
                   color: done ? '#00c870' : 'var(--text)',
                   lineHeight: 1,
