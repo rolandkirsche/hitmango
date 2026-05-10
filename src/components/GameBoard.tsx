@@ -250,13 +250,13 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
       const a = { x: oTL.x + (oTR.x - oTL.x) * t, y: oTL.y + (oTR.y - oTL.y) * t };
       const b = { x: oBL.x + (oBR.x - oBL.x) * t, y: oBL.y + (oBR.y - oBL.y) * t };
       lines.push(<line key={`gx${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-        stroke="#1c2040" strokeWidth={0.8} />);
+        stroke="#aab2bc" strokeWidth={0.8} />);
     });
     steps.forEach((t, i) => {
       const a = { x: oTL.x + (oBL.x - oTL.x) * t, y: oTL.y + (oBL.y - oTL.y) * t };
       const b = { x: oTR.x + (oBR.x - oTR.x) * t, y: oTR.y + (oBR.y - oTR.y) * t };
       lines.push(<line key={`gy${i}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-        stroke="#1c2040" strokeWidth={0.8} />);
+        stroke="#aab2bc" strokeWidth={0.8} />);
     });
     return lines;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -271,23 +271,20 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: '100%' }}>
       <defs>
-        {/* roehrenboerse dark-navy environment */}
-        <radialGradient id="hm-bg" cx="32%" cy="25%" r="80%">
-          <stop offset="0%" stopColor="#1a1f3c" />
-          <stop offset="55%" stopColor="#0d1025" />
-          <stop offset="100%" stopColor="#050510" />
+        <radialGradient id="hm-bg" cx="30%" cy="22%" r="88%">
+          <stop offset="0%" stopColor="#bdc7d0" />
+          <stop offset="100%" stopColor="#748898" />
         </radialGradient>
-        <radialGradient id="hm-vignette" cx="50%" cy="50%" r="70%">
+        <radialGradient id="hm-vignette" cx="50%" cy="50%" r="68%">
           <stop offset="0%" stopColor="rgba(0,0,0,0)" />
-          <stop offset="100%" stopColor="rgba(0,0,0,0.6)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0.48)" />
         </radialGradient>
-        {/* Dark grid pattern for ground */}
-        <pattern id="hm-grass" x="0" y="0" width="18" height="18"
+        <pattern id="hm-grass" x="0" y="0" width="14" height="14"
           patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">
-          <rect width="18" height="18" fill="#0b1020" />
-          <line x1="0" y1="18" x2="18" y2="0" stroke="#151c30" strokeWidth="0.8" opacity="0.7" />
-          <line x1="-9" y1="18" x2="9" y2="0"  stroke="#151c30" strokeWidth="0.4" opacity="0.35" />
-          <line x1="9"  y1="18" x2="27" y2="0"  stroke="#151c30" strokeWidth="0.4" opacity="0.35" />
+          <rect width="14" height="14" fill="#4a7238" />
+          <line x1="0" y1="14" x2="14" y2="0" stroke="#3d6230" strokeWidth="0.9" opacity="0.55" />
+          <line x1="-7" y1="14" x2="7" y2="0"  stroke="#3d6230" strokeWidth="0.5" opacity="0.25" />
+          <line x1="7"  y1="14" x2="21" y2="0"  stroke="#3d6230" strokeWidth="0.5" opacity="0.25" />
         </pattern>
         <clipPath id="hm-lawn-clip">
           <polygon points={lawnPts} />
@@ -325,30 +322,19 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
       <rect width={W} height={H} fill="url(#hm-bg)" />
       <rect width={W} height={H} fill="url(#hm-vignette)" />
 
-      {/* Board shadow */}
       <ellipse
-        cx={(oBL.x + oBR.x) / 2} cy={(oBL.y + oBR.y) / 2 + TH + 14}
-        rx={(oBR.x - oBL.x) * 0.52} ry={16}
-        fill="rgba(0,0,0,0.5)" filter="url(#hm-board-shadow)"
+        cx={(oBL.x + oBR.x) / 2} cy={(oBL.y + oBR.y) / 2 + TH + 10}
+        rx={(oBR.x - oBL.x) * 0.55} ry={14}
+        fill="rgba(0,0,0,0.32)" filter="url(#hm-board-shadow)"
       />
-      {/* Board 3D sides — dark navy */}
-      <polygon points={pStr([oBL, oBR, { x: oBR.x, y: oBR.y + TH }, { x: oBL.x, y: oBL.y + TH }])} fill="#0a0e20" />
-      <polygon points={pStr([oTR, oBR, { x: oBR.x, y: oBR.y + TH }, { x: oTR.x, y: oTR.y + TH }])} fill="#080c1c" />
-      {/* Gold edge lines */}
-      <line x1={oBL.x} y1={oBL.y + TH} x2={oBR.x} y2={oBR.y + TH} stroke="rgba(244,180,0,0.2)" strokeWidth={1} />
-      <line x1={oTR.x} y1={oTR.y + TH} x2={oBR.x} y2={oBR.y + TH} stroke="rgba(244,180,0,0.12)" strokeWidth={1} />
-      {/* Board top — dark navy tile surface */}
-      <polygon points={pStr([oTL, oTR, oBR, oBL])} fill="#0f1428" />
-      {/* Grout lines in dark navy */}
+      <polygon points={pStr([oBL, oBR, { x: oBR.x, y: oBR.y + TH }, { x: oBL.x, y: oBL.y + TH }])} fill="#8898a8" />
+      <polygon points={pStr([oTR, oBR, { x: oBR.x, y: oBR.y + TH }, { x: oTR.x, y: oTR.y + TH }])} fill="#7888a0" />
+      <polygon points={pStr([oTL, oTR, oBR, oBL])} fill="#c6cdd6" />
       {groutLines}
-      {/* Board border — subtle gold */}
-      <polygon points={pStr([oTL, oTR, oBR, oBL])} fill="none"
-        stroke="rgba(244,180,0,0.15)" strokeWidth={1} />
-      {/* Grid ground */}
+      <polygon points={pStr([oTL, oTR, oBR, oBL])} fill="none" stroke="#a8b2bc" strokeWidth={1} />
       <rect width={W} height={H} fill="url(#hm-grass)" clipPath="url(#hm-lawn-clip)" />
-      {/* Inner shadow */}
-      <polygon points={lawnPts} fill="none" stroke="rgba(0,0,0,0.4)" strokeWidth={5} />
-      <polygon points={lawnPts} fill="none" stroke="rgba(244,180,0,0.08)" strokeWidth={1} />
+      <polygon points={lawnPts} fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth={4} />
+      <polygon points={lawnPts} fill="none" stroke="#3a6028" strokeWidth={1} />
 
       {/* Path edges */}
       {level.edges.map((edge, i) => {
@@ -356,7 +342,7 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
         if (!f || !t) return null;
         const fp = iso(f.x, f.y), tp = iso(t.x, t.y);
         return <line key={i} x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y}
-          stroke="rgba(244,180,0,0.22)" strokeWidth={2} strokeLinecap="round" />;
+          stroke="#111" strokeWidth={1.6} strokeLinecap="round" />;
       })}
 
       {/* Enemy facing: arrows (patrol) + knife trajectories */}
@@ -429,16 +415,16 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
 
             {/* Wait ring */}
             {isPlayer && state.status === 'playing' && !throwMode && (
-              <circle cx={p.x} cy={p.y} r={17}
-                fill="none" stroke="rgba(244,180,0,0.5)" strokeWidth={1.2}
-                strokeDasharray="3 4" />
+              <circle cx={p.x} cy={p.y} r={16}
+                fill="none" stroke="#4a70d0" strokeWidth={1.2}
+                strokeDasharray="3 3.5" opacity={0.6} />
             )}
 
             {/* Move highlight */}
             {isAdj && !throwMode && (
-              <circle cx={p.x} cy={p.y} r={15}
-                fill="rgba(244,180,0,0.08)"
-                stroke="rgba(244,180,0,0.6)" strokeWidth={1.5}
+              <circle cx={p.x} cy={p.y} r={14}
+                fill="rgba(210,185,60,0.18)"
+                stroke="#c8a030" strokeWidth={1.5}
                 filter="url(#hm-move)"
               />
             )}
@@ -447,22 +433,21 @@ export default function GameBoard({ level, state, onMove, throwMode = false }: P
             {isExit ? (
               <g filter="url(#hm-exit)">
                 <circle cx={p.x} cy={p.y} r={8}
-                  fill="none" stroke="#f4b400" strokeWidth={2.5}>
-                  <animate attributeName="r"       values="7;12;7"   dur="2.2s" repeatCount="indefinite" />
-                  <animate attributeName="opacity" values="1;0.15;1" dur="2.2s" repeatCount="indefinite" />
+                  fill="none" stroke="#00c060" strokeWidth={2.5}>
+                  <animate attributeName="r"       values="7;11;7"   dur="2.4s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="1;0.2;1" dur="2.4s" repeatCount="indefinite" />
                 </circle>
-                <circle cx={p.x} cy={p.y} r={3.5} fill="#f4b400"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(244,180,0,0.8))' }} />
+                <circle cx={p.x} cy={p.y} r={3.5} fill="#00c060" />
               </g>
             ) : (
               <>
-                <circle cx={p.x + 0.5} cy={p.y + 1.5} r={6.5} fill="rgba(0,0,0,0.4)" />
-                <circle cx={p.x} cy={p.y} r={6}
-                  fill={isPlayer && !enemy ? 'rgba(244,180,0,0.15)' : '#0f1428'}
-                  stroke={isPlayer && !enemy ? '#f4b400' : '#272b3d'}
-                  strokeWidth={1.5}
+                <circle cx={p.x + 0.5} cy={p.y + 1.5} r={6} fill="rgba(0,0,0,0.25)" />
+                <circle cx={p.x} cy={p.y} r={5.5}
+                  fill={isPlayer && !enemy ? '#1e2e50' : '#1a1a1a'}
+                  stroke={isPlayer && !enemy ? '#4a70d0' : '#333'}
+                  strokeWidth={1}
                 />
-                <ellipse cx={p.x - 1.5} cy={p.y - 1.8} rx={2} ry={1.2} fill="rgba(255,255,255,0.07)" />
+                <ellipse cx={p.x - 1.5} cy={p.y - 1.5} rx={2} ry={1.2} fill="rgba(255,255,255,0.1)" />
               </>
             )}
 
