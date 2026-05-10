@@ -9,6 +9,7 @@ export function initState(level: Level): GameState {
       path: e.path,
       index: e.startIndex,
       dir: 1 as const,
+      node: e.node,
     })),
     status: 'playing',
     moves: 0,
@@ -25,6 +26,8 @@ export function getAdjacentNodes(nodeId: NodeId, level: Level): NodeId[] {
 }
 
 function enemyFacing(enemy: Enemy): NodeId | null {
+  // knife: current index IS the facing node (cycles through path)
+  if (enemy.type === 'knife') return enemy.path[enemy.index];
   const nextIndex = enemy.index + enemy.dir;
   if (nextIndex >= 0 && nextIndex < enemy.path.length) {
     return enemy.path[nextIndex];
@@ -35,13 +38,16 @@ function enemyFacing(enemy: Enemy): NodeId | null {
 function canPlayerKill(enemy: Enemy, fromNode: NodeId): boolean {
   if (enemy.type === 'sniper') return false;
   const facing = enemyFacing(enemy);
-  // kill if approaching from behind (not from the direction enemy faces)
-  if (facing === null) return true; // stationary or end of path - can kill from any side
+  if (facing === null) return true;
   return fromNode !== facing;
 }
 
 function advanceEnemy(enemy: Enemy): Enemy {
   if (enemy.type === 'stationary') return enemy;
+  // knife rotates facing through path in a cycle (no bounce)
+  if (enemy.type === 'knife') {
+    return { ...enemy, index: (enemy.index + 1) % enemy.path.length };
+  }
   const next = { ...enemy };
   const nextIndex = next.index + next.dir;
   if (nextIndex >= next.path.length) {
@@ -72,7 +78,7 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
   if (!isWait) {
     const killed: string[] = [];
     for (const enemy of newEnemies) {
-      const enemyNode = enemy.path[enemy.index];
+      const enemyNode = getEnemyNode(enemy);
       if (enemyNode === targetNode) {
         if (canPlayerKill(enemy, state.playerNode)) {
           killed.push(enemy.id);
@@ -92,7 +98,11 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
   const advancedEnemies: Enemy[] = [];
   for (const enemy of newEnemies) {
     const advanced = advanceEnemy(enemy);
-    if (advanced.path[advanced.index] === finalPlayerNode) {
+    // knife: kills if new facing === player node; patrol: kills if new position === player node
+    const dangerNode = advanced.type === 'knife'
+      ? advanced.path[advanced.index]
+      : getEnemyNode(advanced);
+    if (dangerNode === finalPlayerNode) {
       playerDead = true;
       break;
     }
@@ -112,7 +122,7 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
 }
 
 export function getEnemyNode(enemy: Enemy): NodeId {
-  return enemy.path[enemy.index];
+  return enemy.node ?? enemy.path[enemy.index];
 }
 
 export function getEnemyFacingNode(enemy: Enemy): NodeId | null {

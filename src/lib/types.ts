@@ -11,13 +11,14 @@ export interface GameEdge {
   to: NodeId;
 }
 
-export type EnemyType = 'patrol' | 'stationary' | 'sniper';
+export type EnemyType = 'patrol' | 'stationary' | 'sniper' | 'knife';
 
 export interface EnemyDef {
   id: string;
   type: EnemyType;
-  path: NodeId[];
+  path: NodeId[];      // for 'knife': rotation of facing nodes (not movement path)
   startIndex: number;
+  node?: NodeId;       // fixed standing position for 'knife' type
 }
 
 export interface Enemy {
@@ -26,6 +27,7 @@ export interface Enemy {
   path: NodeId[];
   index: number;
   dir: 1 | -1;
+  node?: NodeId;       // fixed standing position for 'knife' type
 }
 
 export interface Level {

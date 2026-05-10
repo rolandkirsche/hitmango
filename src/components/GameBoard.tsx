@@ -175,6 +175,46 @@ function SniperPiece({ x, y }: { x: number; y: number }) {
   );
 }
 
+// Knife man — dark olive fatigues, visible blade
+function KnifePiece({ x, y }: { x: number; y: number }) {
+  const bx = x, by = y;
+  return (
+    <g style={{ pointerEvents: 'none' }}>
+      <Base x={bx} y={by + 17} color="#1e2818" shadowColor="#0a0e08" />
+      {/* Body — olive fatigues */}
+      <path
+        d={`M${bx-7},${by+10} C${bx-10},${by+2} ${bx-10},${by-5} ${bx-7},${by-11}
+            L${bx-5},${by-15} L${bx+5},${by-15} L${bx+7},${by-11}
+            C${bx+10},${by-5} ${bx+10},${by+2} ${bx+7},${by+10} Z`}
+        fill="#2e3824"
+      />
+      <path
+        d={`M${bx-7},${by+10} C${bx-10},${by+2} ${bx-10},${by-5} ${bx-7},${by-11}
+            L${bx-5},${by-15} L${bx},${by-15} L${bx},${by+10} Z`}
+        fill="rgba(0,0,0,0.2)"
+      />
+      {/* Knife in raised hand — glinting blade */}
+      <line x1={bx+5} y1={by-14} x2={bx+12} y2={by-22}
+        stroke="#c8c090" strokeWidth={1.5} strokeLinecap="round" />
+      <line x1={bx+6} y1={by-15} x2={bx+8} y2={by-13}
+        stroke="#e8e0a0" strokeWidth={1} />
+      {/* Cross guard */}
+      <line x1={bx+3} y1={by-16} x2={bx+9} y2={by-12}
+        stroke="#888060" strokeWidth={1.2} strokeLinecap="round" />
+      {/* Belt */}
+      <rect x={bx-7} y={by+3} width={14} height={2.5} rx={0.8} fill="#141a10" />
+      {/* Neck */}
+      <rect x={bx-2.2} y={by-18} width={4.4} height={5} rx={1.5} fill="#c8a080" />
+      {/* Head with balaclava */}
+      <circle cx={bx} cy={by-24} r={7} fill="#1e2010" />
+      {/* Eye slit */}
+      <rect x={bx-4} y={by-26} width={8} height={2.5} rx={1} fill="#0a0c08" />
+      <rect x={bx-3} y={by-25.5} width={2.5} height={1.5} rx={0.5} fill="#c09050" opacity={0.8} />
+      <rect x={bx+0.5} y={by-25.5} width={2.5} height={1.5} rx={0.5} fill="#c09050" opacity={0.8} />
+    </g>
+  );
+}
+
 export default function GameBoard({ level, state, onMove }: Props) {
   const iso = useMemo(() => buildIso(level.nodes), [level.nodes]);
 
@@ -336,7 +376,7 @@ export default function GameBoard({ level, state, onMove }: Props) {
         );
       })}
 
-      {/* Enemy facing arrows */}
+      {/* Enemy facing arrows + knife trajectories */}
       {state.enemies.map(enemy => {
         const facingId = getEnemyFacingNode(enemy);
         if (!facingId) return null;
@@ -349,6 +389,28 @@ export default function GameBoard({ level, state, onMove }: Props) {
         const ux = dx / len, uy = dy / len;
         const mx = fp.x + dx * 0.53, my = fp.y + dy * 0.53;
         const s = 8, w = 5;
+
+        if (enemy.type === 'knife') {
+          return (
+            <g key={enemy.id + '-k'}>
+              {/* Dashed knife throw line */}
+              <line
+                x1={fp.x} y1={fp.y} x2={tp.x} y2={tp.y}
+                stroke="#d08020" strokeWidth={1.4} strokeDasharray="4 3" opacity={0.75}
+              />
+              {/* Arrowhead at target */}
+              <polygon
+                points={`${tp.x + ux*7},${tp.y + uy*7} ${tp.x - ux*7 - uy*5},${tp.y - uy*7 + ux*5} ${tp.x - ux*7 + uy*5},${tp.y - uy*7 - ux*5}`}
+                fill="#e09030" opacity={0.9}
+              />
+              {/* Danger circle at facing node */}
+              <circle cx={tp.x} cy={tp.y} r={13}
+                fill="rgba(220,120,0,0.08)" stroke="#c07020" strokeWidth={1}
+                strokeDasharray="3 3" opacity={0.7} />
+            </g>
+          );
+        }
+
         return (
           <polygon key={enemy.id + '-a'}
             points={`${mx + ux*s},${my + uy*s} ${mx - ux*s - uy*w},${my - uy*s + ux*w} ${mx - ux*s + uy*w},${my - uy*s - ux*w}`}
@@ -420,8 +482,10 @@ export default function GameBoard({ level, state, onMove }: Props) {
             {enemy && !isPlayer && (
               <g filter="url(#hm-piece)">
                 {enemy.type === 'sniper'
-                  ? <SniperPiece  x={p.x} y={p.y - 8} />
-                  : <GuardPiece   x={p.x} y={p.y - 8} />
+                  ? <SniperPiece x={p.x} y={p.y - 8} />
+                  : enemy.type === 'knife'
+                  ? <KnifePiece  x={p.x} y={p.y - 8} />
+                  : <GuardPiece  x={p.x} y={p.y - 8} />
                 }
               </g>
             )}

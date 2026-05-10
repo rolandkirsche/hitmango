@@ -60,7 +60,7 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       {/* Level grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(4, 148px)',
+        gridTemplateColumns: 'repeat(5, 148px)',
         gap: '1.25rem',
       }}>
         {levels.map((level, i) => {

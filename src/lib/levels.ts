@@ -387,4 +387,100 @@ export const levels: Level[] = [
       { id: 'g4',  type: 'patrol',  path: ['h', 'j'],      startIndex: 0 },
     ],
   },
+  // ── Knife-man levels ────────────────────────────────────────────────────────
+  {
+    id: 13,
+    name: 'The Carousel',
+    // One knife man in the centre rotating CW through 4 nodes.
+    // Solution: wait → a → kn(kill) → b → ex  (5 moves)
+    nodes: [
+      { id: 's',   x:  80, y: 300 },
+      { id: 'a',   x: 210, y: 300 },
+      { id: 'kn',  x: 340, y: 300 },
+      { id: 'b',   x: 470, y: 300 },
+      { id: 'ex',  x: 600, y: 300 },
+      { id: 'top', x: 340, y: 175 },
+      { id: 'bot', x: 340, y: 425 },
+    ],
+    edges: [
+      { from: 's',  to: 'a'   },
+      { from: 'a',  to: 'kn'  },
+      { from: 'kn', to: 'b'   },
+      { from: 'b',  to: 'ex'  },
+      { from: 'kn', to: 'top' },
+      { from: 'kn', to: 'bot' },
+    ],
+    playerStart: 's',
+    exit: 'ex',
+    enemies: [
+      // faces a → top → b → bot → a … (cycle)
+      { id: 'k1', type: 'knife', node: 'kn', path: ['a', 'top', 'b', 'bot'], startIndex: 0 },
+    ],
+  },
+  {
+    id: 14,
+    name: 'The Corridor',
+    // Two knife men guard a linear corridor; must time kills.
+    // Solution: wait → s→a → a→k1(kill) → wait → k1→b → b→k2(kill) → k2→ex  (7 moves)
+    nodes: [
+      { id: 's',  x:  80, y: 300 },
+      { id: 'a',  x: 200, y: 300 },
+      { id: 'k1', x: 330, y: 300 },
+      { id: 'b',  x: 460, y: 300 },
+      { id: 'k2', x: 590, y: 300 },
+      { id: 'ex', x: 720, y: 300 },
+    ],
+    edges: [
+      { from: 's',  to: 'a'  },
+      { from: 'a',  to: 'k1' },
+      { from: 'k1', to: 'b'  },
+      { from: 'b',  to: 'k2' },
+      { from: 'k2', to: 'ex' },
+    ],
+    playerStart: 's',
+    exit: 'ex',
+    enemies: [
+      // k1 faces b first — player can't approach from b; must wait one turn
+      { id: 'km1', type: 'knife', node: 'k1', path: ['a', 'b'], startIndex: 1 },
+      // k2 faces b first — same timing trap on second gate
+      { id: 'km2', type: 'knife', node: 'k2', path: ['b', 'ex'], startIndex: 0 },
+    ],
+  },
+  {
+    id: 15,
+    name: 'The Pinwheel',
+    // Two knife men on top/bottom rows, one patrol guard.
+    // Player routes through the middle row and times around facings.
+    // Solution: wait → b→e → wait → e→h → h→ex  (5 moves)
+    nodes: [
+      { id: 's',  x:  80, y: 300 },
+      { id: 'a',  x: 210, y: 175 },
+      { id: 'b',  x: 210, y: 300 },
+      { id: 'c',  x: 210, y: 425 },
+      { id: 'd',  x: 340, y: 175 },
+      { id: 'e',  x: 340, y: 300 },
+      { id: 'f',  x: 340, y: 425 },
+      { id: 'g',  x: 470, y: 175 },
+      { id: 'h',  x: 470, y: 300 },
+      { id: 'i',  x: 470, y: 425 },
+      { id: 'ex', x: 600, y: 300 },
+    ],
+    edges: [
+      { from: 's', to: 'b'  },
+      { from: 'a', to: 'b'  }, { from: 'b', to: 'c' },
+      { from: 'a', to: 'd'  }, { from: 'b', to: 'e' }, { from: 'c', to: 'f' },
+      { from: 'd', to: 'e'  }, { from: 'e', to: 'f' },
+      { from: 'd', to: 'g'  }, { from: 'e', to: 'h' }, { from: 'f', to: 'i' },
+      { from: 'g', to: 'h'  }, { from: 'h', to: 'i' },
+      { from: 'h', to: 'ex' },
+    ],
+    playerStart: 's',
+    exit: 'ex',
+    enemies: [
+      // knife man on top-middle, rotates a→e→g
+      { id: 'km1', type: 'knife', node: 'd', path: ['a', 'e', 'g'], startIndex: 0 },
+      // knife man on bottom-middle, rotates i→e→c, offset so 'e' windows differ
+      { id: 'km2', type: 'knife', node: 'f', path: ['i', 'e', 'c'], startIndex: 2 },
+    ],
+  },
 ];
