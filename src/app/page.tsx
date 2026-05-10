@@ -134,10 +134,10 @@ export default function Home() {
       </div>
 
       {/* Board */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
         <div style={{
           position: 'relative',
-          width: '100%',
+          width: 'min(100%, calc((100dvh - 84px) * 4 / 3))',
           maxWidth: '860px',
           aspectRatio: '4/3',
         }}>
