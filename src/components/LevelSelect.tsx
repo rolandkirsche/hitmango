@@ -134,9 +134,9 @@ export default function LevelSelect({ onSelect, completed }: Props) {
         </h1>
         <p style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.48rem',
+          fontSize: '0.7rem',
           letterSpacing: '0.25em',
-          color: 'var(--text-dim)',
+          color: '#8898a8',
           marginTop: '0.5rem',
           textTransform: 'lowercase',
         }}>by Rotolando 2026</p>
@@ -200,9 +200,9 @@ export default function LevelSelect({ onSelect, completed }: Props) {
                 {/* Level name */}
                 <div style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: '0.52rem',
+                  fontSize: '0.65rem',
                   letterSpacing: '0.2em',
-                  color: done ? '#2a8050' : 'var(--text-dim)',
+                  color: done ? '#2a8050' : '#8898a8',
                   textTransform: 'uppercase',
                   textAlign: 'center',
                   padding: '0 0.75rem',
@@ -214,7 +214,7 @@ export default function LevelSelect({ onSelect, completed }: Props) {
                 {done && (
                   <div style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.48rem',
+                    fontSize: '0.62rem',
                     letterSpacing: '0.2em',
                     color: '#00c870',
                     textTransform: 'uppercase',
@@ -249,9 +249,9 @@ export default function LevelSelect({ onSelect, completed }: Props) {
       <p style={{
         marginTop: '3rem',
         fontFamily: 'var(--font-mono)',
-        fontSize: '0.5rem',
+        fontSize: '0.68rem',
         letterSpacing: '0.45em',
-        color: 'var(--text-dim)',
+        color: '#8898a8',
         textTransform: 'uppercase',
       }}>
         select mission
