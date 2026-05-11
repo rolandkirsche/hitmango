@@ -249,6 +249,23 @@ export default function GameBoard({ level, state, onMove, canMode, onCanThrow }:
     [level.nodes]
   );
 
+  // Depth-sort: lower (x+y) = further back in iso view → render first
+  const sortedNodes = useMemo(
+    () => [...level.nodes].sort((a, b) => (a.x + a.y) - (b.x + b.y)),
+    [level.nodes]
+  );
+
+  // Index killed enemies by node for per-node rendering
+  const killedByNode = useMemo(() => {
+    const m = new Map<string, typeof state.killedEnemies>();
+    for (const ke of state.killedEnemies) {
+      const arr = m.get(ke.node) ?? [];
+      arr.push(ke);
+      m.set(ke.node, arr);
+    }
+    return m;
+  }, [state.killedEnemies]);
+
   const xs = level.nodes.map(n => n.x);
   const ys = level.nodes.map(n => n.y);
   const padO = 68, padI = 44;
@@ -376,13 +393,6 @@ export default function GameBoard({ level, state, onMove, canMode, onCanThrow }:
         );
       })}
 
-      {/* Fallen enemies (behind live pieces) */}
-      {state.killedEnemies.map(ke => {
-        const kn = nodeMap.get(ke.node);
-        if (!kn) return null;
-        const p = iso(kn.x, kn.y);
-        return <FallenPiece key={ke.id} x={p.x} y={p.y - 8} type={ke.type} />;
-      })}
 
       {/* Thrown-can indicator */}
       {state.can && (() => {
@@ -425,22 +435,26 @@ export default function GameBoard({ level, state, onMove, canMode, onCanThrow }:
         );
       })}
 
-      {/* Nodes + pieces */}
-      {level.nodes.map(node => {
+      {/* Nodes + pieces — depth-sorted back-to-front */}
+      {sortedNodes.map(node => {
         const p = iso(node.x, node.y);
         const isExit   = node.id === level.exit;
         const isPlayer = node.id === state.playerNode;
         const enemy    = enemyPositions.get(node.id);
         const isAdj    = adjacentToPlayer.includes(node.id);
         const playerInBush = isPlayer && node.isBush;
+        const fallen   = killedByNode.get(node.id) ?? [];
 
         const canMoveClick = (isAdj || isPlayer) && !canMode;
         const canThrowClick = canMode;
 
         return (
           <g key={node.id}>
-            {/* Bush decoration — behind everything */}
+            {/* Bush decoration — behind node disc */}
             {node.isBush && <BushDecoration x={p.x} y={p.y - 6} />}
+
+            {/* Fallen enemies at this node (depth-correct) */}
+            {fallen.map(ke => <FallenPiece key={ke.id} x={p.x} y={p.y - 8} type={ke.type} />)}
 
             {/* Bush glow when player is hiding */}
             {playerInBush && (
