@@ -78,6 +78,9 @@ function FallenPiece({ x, y, type }: { x: number; y: number; type: EnemyType }) 
       <circle  cx={bx + 13} cy={by - 2}  r={5.5} fill="#c8a080" />
       <ellipse cx={bx + 14} cy={by - 4}  rx={2}  ry={1.3}
         fill="rgba(255,225,185,0.28)" />
+      {/* Cemetery cross */}
+      <rect x={bx - 18} y={by - 24} width={2.5} height={14} rx={0.8} fill="#c8c0a8" />
+      <rect x={bx - 22} y={by - 22} width={10}  height={2.5} rx={0.8} fill="#c8c0a8" />
     </g>
   );
 }
