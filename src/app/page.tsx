@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { levels } from '@/lib/levels';
-import { initState, movePlayer } from '@/lib/gameEngine';
+import { initState, movePlayer, throwCan } from '@/lib/gameEngine';
 import { GameState, NodeId } from '@/lib/types';
 import GameBoard from '@/components/GameBoard';
 import LevelSelect from '@/components/LevelSelect';
@@ -12,25 +12,35 @@ export default function Home() {
   const [levelIndex, setLevelIndex] = useState(0);
   const [gameState, setGameState] = useState<GameState>(() => initState(levels[0]));
   const [completed, setCompleted] = useState<number[]>([]);
+  const [canMode, setCanMode] = useState(false);
 
   const startLevel = useCallback((idx: number) => {
     setLevelIndex(idx);
     setGameState(initState(levels[idx]));
+    setCanMode(false);
     setScreen('game');
   }, []);
 
   useEffect(() => {
     if (gameState.status === 'won') {
       setCompleted(c => c.includes(levelIndex) ? c : [...c, levelIndex]);
+      setCanMode(false);
     }
+    if (gameState.status === 'dead') setCanMode(false);
   }, [gameState.status, levelIndex]);
 
   const handleMove = useCallback((nodeId: NodeId) => {
     setGameState(prev => movePlayer(prev, nodeId, levels[levelIndex]));
   }, [levelIndex]);
 
+  const handleCanThrow = useCallback((nodeId: NodeId) => {
+    setGameState(prev => throwCan(prev, nodeId));
+    setCanMode(false);
+  }, []);
+
   const restart = useCallback(() => {
     setGameState(initState(levels[levelIndex]));
+    setCanMode(false);
   }, [levelIndex]);
 
   const nextLevel = useCallback(() => {
@@ -44,7 +54,7 @@ export default function Home() {
   }
 
   const level = levels[levelIndex];
-  const { status, moves } = gameState;
+  const { status, moves, cansLeft } = gameState;
 
   const overlayBtn: React.CSSProperties = {
     fontFamily: 'var(--font-mono)',
@@ -116,22 +126,69 @@ export default function Home() {
           </span>
         </div>
 
-        <div style={{ textAlign: 'right', minWidth: '80px' }}>
-          <span style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '1.1rem',
-            color: 'var(--text)',
-          }}>{moves}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', minWidth: '80px', justifyContent: 'flex-end' }}>
+          {/* Can throw button */}
+          {cansLeft > 0 && status === 'playing' && (
+            <button
+              onClick={() => setCanMode(c => !c)}
+              title="Throw can to distract guards"
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.55rem',
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: canMode ? '#e0a830' : 'var(--text-dim)',
+                background: canMode ? 'rgba(200,160,40,0.12)' : 'none',
+                border: `1px solid ${canMode ? '#a07820' : 'var(--border)'}`,
+                borderRadius: '2px',
+                padding: '0.3rem 0.6rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}
+            >
+              <span style={{ fontSize: '0.75rem' }}>⊙</span>
+              <span>{cansLeft}</span>
+            </button>
+          )}
+          <div style={{ textAlign: 'right' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.1rem', color: 'var(--text)' }}>{moves}</span>
+            <span style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.5rem',
+              letterSpacing: '0.2em',
+              color: 'var(--text-dim)',
+              textTransform: 'uppercase',
+              marginLeft: '0.4rem',
+            }}>moves</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Can mode hint bar */}
+      {canMode && status === 'playing' && (
+        <div style={{
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '28px',
+          background: 'rgba(180,130,20,0.12)',
+          borderBottom: '1px solid rgba(180,130,20,0.3)',
+        }}>
           <span style={{
             fontFamily: 'var(--font-mono)',
             fontSize: '0.5rem',
-            letterSpacing: '0.2em',
-            color: 'var(--text-dim)',
+            letterSpacing: '0.25em',
+            color: '#c8960c',
             textTransform: 'uppercase',
-            marginLeft: '0.4rem',
-          }}>moves</span>
+          }}>
+            select target node — esc to cancel
+          </span>
         </div>
-      </div>
+      )}
 
       {/* Board */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -141,7 +198,13 @@ export default function Home() {
           maxWidth: '860px',
           aspectRatio: '4/3',
         }}>
-          <GameBoard level={level} state={gameState} onMove={handleMove} />
+          <GameBoard
+            level={level}
+            state={gameState}
+            onMove={handleMove}
+            canMode={canMode && status === 'playing'}
+            onCanThrow={handleCanThrow}
+          />
 
           {/* Dead overlay */}
           {status === 'dead' && (
@@ -167,11 +230,7 @@ export default function Home() {
                 color: '#c02020',
                 marginBottom: '2.5rem',
               }}>YOU WERE SPOTTED</p>
-              <button onClick={restart} style={{
-                ...overlayBtn,
-                color: '#c04040',
-                border: '1px solid #601010',
-              }}>
+              <button onClick={restart} style={{ ...overlayBtn, color: '#c04040', border: '1px solid #601010' }}>
                 retry
               </button>
             </div>
@@ -209,20 +268,12 @@ export default function Home() {
                 marginBottom: '2.5rem',
               }}>{moves} moves</p>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={restart} style={{
-                  ...overlayBtn,
-                  color: 'var(--text-dim)',
-                  border: '1px solid var(--border)',
-                }}>
+                <button onClick={restart} style={{ ...overlayBtn, color: 'var(--text-dim)', border: '1px solid var(--border)' }}>
                   replay
                 </button>
                 <button
                   onClick={levelIndex + 1 < levels.length ? nextLevel : () => setScreen('select')}
-                  style={{
-                    ...overlayBtn,
-                    color: '#00c870',
-                    border: '1px solid #186030',
-                  }}
+                  style={{ ...overlayBtn, color: '#00c870', border: '1px solid #186030' }}
                 >
                   {levelIndex + 1 < levels.length ? 'next mission' : 'all missions'}
                 </button>

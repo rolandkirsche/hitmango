@@ -1,4 +1,4 @@
-import { Level, GameState, Enemy, NodeId } from './types';
+import { Level, GameState, Enemy, NodeId, KilledEnemy } from './types';
 
 export function initState(level: Level): GameState {
   return {
@@ -15,6 +15,7 @@ export function initState(level: Level): GameState {
     moves: 0,
     can: null,
     cansLeft: level.cans ?? 0,
+    killedEnemies: [],
   };
 }
 
@@ -62,16 +63,15 @@ function advanceEnemy(enemy: Enemy): Enemy {
   return next;
 }
 
-// Throw a can: enemies (patrol/stationary) freeze this turn. Knife/sniper unaffected.
+// Throw a can: patrol/stationary freeze this turn. Knife/sniper unaffected.
 export function throwCan(state: GameState, targetNode: NodeId): GameState {
   if (state.status !== 'playing' || state.cansLeft <= 0) return state;
 
-  // Only knife enemies advance; patrol/stationary are distracted
   const advancedEnemies: Enemy[] = [];
   let playerDead = false;
   for (const enemy of state.enemies) {
     if (enemy.type === 'patrol' || enemy.type === 'stationary') {
-      advancedEnemies.push(enemy); // frozen
+      advancedEnemies.push(enemy);
       continue;
     }
     const advanced = advanceEnemy(enemy);
@@ -96,9 +96,7 @@ export function throwCan(state: GameState, targetNode: NodeId): GameState {
 export function movePlayer(state: GameState, targetNode: NodeId, level: Level): GameState {
   if (state.status !== 'playing') return state;
 
-  // Clear can visual on any new action
   const baseState = { ...state, can: null };
-
   const isWait = targetNode === baseState.playerNode;
 
   if (!isWait) {
@@ -106,16 +104,19 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
     if (!adjacent.includes(targetNode)) return state;
   }
 
+  const nodeMap = new Map(level.nodes.map(n => [n.id, n]));
   let newEnemies = [...baseState.enemies];
+  const newKilledEnemies: KilledEnemy[] = [...baseState.killedEnemies];
   let playerDead = false;
 
   if (!isWait) {
-    const killed: string[] = [];
+    const justKilled: string[] = [];
     for (const enemy of newEnemies) {
       const enemyNode = getEnemyNode(enemy);
       if (enemyNode === targetNode) {
         if (canPlayerKill(enemy, baseState.playerNode)) {
-          killed.push(enemy.id);
+          justKilled.push(enemy.id);
+          newKilledEnemies.push({ id: enemy.id, type: enemy.type, node: enemyNode });
         } else {
           playerDead = true;
           break;
@@ -123,10 +124,11 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
       }
     }
     if (playerDead) return { ...state, status: 'dead' };
-    newEnemies = newEnemies.filter(e => !killed.includes(e.id));
+    newEnemies = newEnemies.filter(e => !justKilled.includes(e.id));
   }
 
   const finalPlayerNode = isWait ? baseState.playerNode : targetNode;
+  const playerInBush = nodeMap.get(finalPlayerNode)?.isBush ?? false;
 
   const advancedEnemies: Enemy[] = [];
   for (const enemy of newEnemies) {
@@ -135,6 +137,11 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
       ? advanced.path[advanced.index]
       : getEnemyNode(advanced);
     if (dangerNode === finalPlayerNode) {
+      // Bush cover: patrol/stationary can't detect player hiding in bush
+      if (playerInBush && (advanced.type === 'patrol' || advanced.type === 'stationary')) {
+        advancedEnemies.push(advanced);
+        continue;
+      }
       playerDead = true;
       break;
     }
@@ -151,6 +158,7 @@ export function movePlayer(state: GameState, targetNode: NodeId, level: Level): 
     enemies: advancedEnemies,
     status: won ? 'won' : 'playing',
     moves: baseState.moves + 1,
+    killedEnemies: newKilledEnemies,
   };
 }
 

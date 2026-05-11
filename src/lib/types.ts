@@ -4,6 +4,7 @@ export interface GameNode {
   id: NodeId;
   x: number;
   y: number;
+  isBush?: boolean;
 }
 
 export interface GameEdge {
@@ -16,9 +17,9 @@ export type EnemyType = 'patrol' | 'stationary' | 'sniper' | 'knife';
 export interface EnemyDef {
   id: string;
   type: EnemyType;
-  path: NodeId[];      // for 'knife': rotation of facing nodes (not movement path)
+  path: NodeId[];
   startIndex: number;
-  node?: NodeId;       // fixed standing position for 'knife' type
+  node?: NodeId;
 }
 
 export interface Enemy {
@@ -27,7 +28,13 @@ export interface Enemy {
   path: NodeId[];
   index: number;
   dir: 1 | -1;
-  node?: NodeId;       // fixed standing position for 'knife' type
+  node?: NodeId;
+}
+
+export interface KilledEnemy {
+  id: string;
+  type: EnemyType;
+  node: NodeId;
 }
 
 export interface Level {
@@ -50,4 +57,5 @@ export interface GameState {
   moves: number;
   can: NodeId | null;
   cansLeft: number;
+  killedEnemies: KilledEnemy[];
 }
